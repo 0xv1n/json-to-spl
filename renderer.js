@@ -12,25 +12,29 @@ function createTableRows(obj, parentKey = '') {
   for (const [key, value] of Object.entries(obj)) {
     const row = document.createElement('tr')
     const selectCell = document.createElement('td')
+    const groupCell = document.createElement('td')
     const keyCell = document.createElement('td')
     const valueCell = document.createElement('td')
 
     const fullKey = parentKey ? `${parentKey}.${key}` : key
-
-    // Remove '0.' from the beginning of the key if it exists
     const formattedKey = fullKey.replace(/^0\./, '').replace(/\.0\./g, '.{}.')
 
     keyCell.textContent = formattedKey
 
-    const checkbox = document.createElement('input')
-    checkbox.type = 'checkbox'
-    selectCell.appendChild(checkbox)
+    const selectCheckbox = document.createElement('input')
+    selectCheckbox.type = 'checkbox'
+    selectCell.appendChild(selectCheckbox)
+
+    const groupCheckbox = document.createElement('input')
+    groupCheckbox.type = 'checkbox'
+    groupCell.appendChild(groupCheckbox)
 
     if (typeof value === 'object' && value !== null) {
       rows.push(...createTableRows(value, fullKey))
     } else {
       valueCell.textContent = value
       row.appendChild(selectCell)
+      row.appendChild(groupCell)
       row.appendChild(keyCell)
       row.appendChild(valueCell)
       rows.push(row)
@@ -47,7 +51,6 @@ jsonInput.addEventListener('change', () => {
     const obj = JSON.parse(json)
     tableBody.innerHTML = ''
 
-    // Get the first inner object
     const firstInnerObjectKey = Object.keys(obj)[0]
     const firstInnerObject = obj[firstInnerObjectKey]
 
@@ -60,24 +63,38 @@ jsonInput.addEventListener('change', () => {
 
 getCheckedItemsButton.addEventListener('click', () => {
   const selectedItems = []
-  const checkboxes = tableBody.querySelectorAll('input[type="checkbox"]')
+  const groupedItems = []
+  const rows = tableBody.querySelectorAll('tr')
 
-  checkboxes.forEach((checkbox, index) => {
-    if (checkbox.checked) {
-      const row = checkbox.closest('tr')
-      const key = row.cells[1].textContent
-      const value = row.cells[2].textContent
-      selectedItems.push({ key, value })
+  rows.forEach((row, index) => {
+    const isSelected = row.cells[0].querySelector('input[type="checkbox"]').checked
+    const isGrouped = row.cells[1].querySelector('input[type="checkbox"]').checked
+    const key = row.cells[2].textContent
+    const value = row.cells[3].textContent
+
+    if (isSelected) {
+      if (isGrouped) {
+        groupedItems.push({ key, value })
+      } else {
+        selectedItems.push({ key, value })
+      }
     }
   })
 
-  output.value = JSON.stringify(selectedItems, null, 2)
+  output.value = JSON.stringify([...selectedItems, ...groupedItems], null, 2)
 
   // Generate Splunk query
   const queryParts = ['index="*" sourcetype="*"']
+  const groupedQueryParts = []
+
   selectedItems.forEach(({ key, value }) => {
     queryParts.push(`${key}="${value}"`)
   })
+
+  if (groupedItems.length > 0) {
+    const groupedOrQuery = groupedItems.map(({ key, value }) => `${key}="${value}"`).join(' OR ')
+    queryParts.push(`(${groupedOrQuery})`)
+  }
 
   const splunkQuery = queryParts.join(' AND ')
   splunkQueryOutput.value = splunkQuery
