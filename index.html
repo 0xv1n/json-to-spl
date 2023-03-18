@@ -1,0 +1,22 @@
+<html>
+  <body>
+    <input type="text" id="jsonInput">
+    <table id="table">
+      <thead>
+        <tr>
+          <th>Select</th>
+          <th>Key</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <br>
+    <button id="getCheckedItems">Get Checked Items</button><br>
+    <textarea id="output" rows="10" cols="30" readonly></textarea><br>
+    <textarea id="splunkQueryOutput" rows="10" cols="30" readonly></textarea><br>
+    <script>
+      require('./renderer.js')
+    </script>
+  </body>
+</html>

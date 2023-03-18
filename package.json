@@ -1,0 +1,15 @@
+{
+  "name": "json-splunk-gpt",
+  "version": "1.0.0",
+  "description": "This application will take in a JSON blob, and allow you to select key-value pairs to selectively generate a Splunk query.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron ."
+  },
+  "author": "Gabriel De Jesus",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^23.1.4"
+  }
+}
